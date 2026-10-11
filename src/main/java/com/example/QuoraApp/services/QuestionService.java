@@ -69,4 +69,12 @@ public class QuestionService implements IQuestionService {
                     .doOnError(error -> System.err.println("Error retrieving questions after cursor: " + error.getMessage()));
         }
     }
+
+    @Override
+    public Mono<QuestionResponseDTO> getQuestionById(String questionId) {
+        return questionRepository.findById(questionId)
+                .map(QuestionAdapter::toQuestionResponseDTO)
+                .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
+                .doOnError(error -> System.err.println("Error retrieving question by ID: " + error.getMessage()));
+    }
 }

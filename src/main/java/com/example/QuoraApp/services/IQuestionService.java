@@ -6,6 +6,7 @@ import com.example.QuoraApp.dto.QuestionResponseDTO;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+
 public interface IQuestionService {
     
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO);
@@ -26,6 +27,13 @@ public interface IQuestionService {
      * @return A Flux of QuestionResponseDTO.
      */
     public Flux<QuestionResponseDTO> getQuestionsAfterCursor(String cursor, int size);
+
+    /**
+     * Get a question by its ID.
+     * @param questionId The ID of the question.
+     * @return A Mono of QuestionResponseDTO.
+     */
+    public Mono<QuestionResponseDTO> getQuestionById(String questionId);
 }
 
 
