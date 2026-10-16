@@ -17,11 +17,15 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import com.example.QuoraApp.events.ViewCountEvent;
+import com.example.QuoraApp.producers.KakfaEventProducer;
+
 @Service
 @RequiredArgsConstructor
 public class QuestionService implements IQuestionService {
 
     private final QuestionRepository questionRepository;
+    private final KakfaEventProducer kakfaEventProducer;
 
     @Override
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
@@ -74,7 +78,11 @@ public class QuestionService implements IQuestionService {
     public Mono<QuestionResponseDTO> getQuestionById(String questionId) {
         return questionRepository.findById(questionId)
                 .map(QuestionAdapter::toQuestionResponseDTO)
-                .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
-                .doOnError(error -> System.err.println("Error retrieving question by ID: " + error.getMessage()));
+                .doOnError(error -> System.err.println("Error retrieving question by ID: " + error.getMessage()))
+                .doOnSuccess(response -> {
+                    System.out.println("Question retrieved successfully : " + response);
+                    ViewCountEvent viewCountEvent = new ViewCountEvent(questionId, "question", LocalDateTime.now());
+                    kakfaEventProducer.publishViewCountEvent(viewCountEvent);
+                });
     }
 }
