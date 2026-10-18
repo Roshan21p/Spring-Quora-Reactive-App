@@ -26,6 +26,8 @@ dependencies {
     // Let Spring Boot manage the compatible Kafka version
     implementation 'org.springframework.kafka:spring-kafka'
 
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

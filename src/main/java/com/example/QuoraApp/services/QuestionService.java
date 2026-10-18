@@ -1,6 +1,7 @@
 package com.example.QuoraApp.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,8 @@ import com.example.QuoraApp.adapter.QuestionAdapter;
 import com.example.QuoraApp.dto.QuestionRequestDTO;
 import com.example.QuoraApp.dto.QuestionResponseDTO;
 import com.example.QuoraApp.models.Question;
+import com.example.QuoraApp.models.QuestionElasticDocument;
+import com.example.QuoraApp.repositories.QuestionDocumentRepository;
 import com.example.QuoraApp.repositories.QuestionRepository;
 import com.example.QuoraApp.utils.CursorUtils;
 
@@ -25,7 +28,13 @@ import com.example.QuoraApp.producers.KakfaEventProducer;
 public class QuestionService implements IQuestionService {
 
     private final QuestionRepository questionRepository;
+
     private final KakfaEventProducer kakfaEventProducer;
+
+    private final IQuestionIndexService questionIndexService;
+
+    private final QuestionDocumentRepository questionDocumentRepository;
+
 
     @Override
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
@@ -38,7 +47,11 @@ public class QuestionService implements IQuestionService {
                 .build();
 
         return questionRepository.save(question)
-                .map(QuestionAdapter::toQuestionResponseDTO)
+                .map(savedQuestion -> {
+                    // Create an index in Elasticsearch for the saved question
+                    questionIndexService.createQuestionIndex(savedQuestion);
+                    return QuestionAdapter.toQuestionResponseDTO(savedQuestion);
+                })
                 .doOnSuccess(response -> System.out.println("Question created successfully: " + response))
                 .doOnError(error -> System.err.println("Error creating question: " + error.getMessage()));
     }
@@ -84,5 +97,10 @@ public class QuestionService implements IQuestionService {
                     ViewCountEvent viewCountEvent = new ViewCountEvent(questionId, "question", LocalDateTime.now());
                     kakfaEventProducer.publishViewCountEvent(viewCountEvent);
                 });
+    }
+
+    @Override 
+    public List<QuestionElasticDocument> searchQuestionsInElastic(String query) {
+        return questionDocumentRepository.searchByTitleOrContent(query);
     }
 }

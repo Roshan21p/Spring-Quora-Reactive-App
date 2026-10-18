@@ -1,5 +1,7 @@
 package com.example.QuoraApp.controllers;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.QuoraApp.dto.QuestionRequestDTO;
 import com.example.QuoraApp.dto.QuestionResponseDTO;
+import com.example.QuoraApp.models.QuestionElasticDocument;
 import com.example.QuoraApp.services.QuestionService;
 
 import lombok.RequiredArgsConstructor;
@@ -47,6 +50,11 @@ public class QuestionController {
         return questionService.getQuestionById(id)
         .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
         .doOnError(error -> System.err.println("Error retrieving question by id: " + error.getMessage()));
+    }
+
+    @GetMapping ("/elasticsearch")
+    public List<QuestionElasticDocument> searchQuestionsInElastic(@RequestParam String query) {
+        return questionService.searchQuestionsInElastic(query);
     }
 
 }

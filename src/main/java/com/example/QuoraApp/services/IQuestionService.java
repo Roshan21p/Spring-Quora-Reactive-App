@@ -1,7 +1,10 @@
 package com.example.QuoraApp.services;
 
+import java.util.List;
+
 import com.example.QuoraApp.dto.QuestionRequestDTO;
 import com.example.QuoraApp.dto.QuestionResponseDTO;
+import com.example.QuoraApp.models.QuestionElasticDocument;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,6 +37,8 @@ public interface IQuestionService {
      * @return A Mono of QuestionResponseDTO.
      */
     public Mono<QuestionResponseDTO> getQuestionById(String questionId);
+
+    public List<QuestionElasticDocument> searchQuestionsInElastic(String query);
 }
 
 

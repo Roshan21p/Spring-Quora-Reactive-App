@@ -7,3 +7,8 @@ spring:
       port: 27017
       database: quora_db
       auto-index-creation: true
+
+  elasticsearch:
+    uris: http://localhost:9201
+  
+   
