@@ -1,6 +1,7 @@
 package com.example.QuoraApp.controllers;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,13 @@ public class QuestionController {
         return questionService.getQuestionsAfterCursor(cursor, size)
         .doOnComplete(() -> System.out.println("Questions retrieved successfully after cursor" + (cursor != null ? ": " + cursor : " without cursor")))
         .doOnError(error -> System.err.println("Error retrieving questions after cursor: " + error.getMessage()));
+    }
+
+    @GetMapping ("/{id}")
+    public Mono<QuestionResponseDTO> getQuestionById(@PathVariable String id) {
+        return questionService.getQuestionById(id)
+        .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
+        .doOnError(error -> System.err.println("Error retrieving question by id: " + error.getMessage()));
     }
 
 }

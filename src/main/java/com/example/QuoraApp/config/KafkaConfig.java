@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,32 +17,37 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
+import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
-@EnableKafka 
+@EnableKafka
+@Slf4j
 public class KafkaConfig {
-    
-    @Value ("${spring.kafka.bootstrap-servers:localhost:9092}")
+
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServer;
 
-    @Value ("${spring.kafka.consumer.group-id:view-count-consumer}")
+    @Value("${spring.kafka.consumer.group-id:view-count-consumer}")
     private String groupId;
 
     public static final String TOPIC_NAME = "view-count-topic";
 
-    @Bean 
+    @Bean
     public ProducerFactory<String, Object> producerFactory() {
         // Configure the producer factory with necessary properties
         // You can customize the properties as per your requirements
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+        log.info("Producer factory created with config: {}", configProps);
+
         return new DefaultKafkaProducerFactory<>(configProps);
     }
-    
+
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
         // Configure the consumer factory with necessary properties
@@ -49,18 +55,19 @@ public class KafkaConfig {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+        configProps.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "com.example.QuoraApp.events");
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
 
-    @Bean 
+    @Bean
     public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    @Bean 
+    @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
